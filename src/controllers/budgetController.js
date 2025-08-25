@@ -2,6 +2,7 @@ const Budget = require('../models/Budget');
 const Category = require('../models/Category');
 const Transaction = require('../models/Transaction');
 const { Op } = require('sequelize');
+const sequelize = require('../config/db'); // Add this import
 
 // Get all budgets for current month
 async function getBudgets(req, res) {

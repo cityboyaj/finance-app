@@ -17,8 +17,11 @@ const validateBudget = [
     .isInt({ min: 1, max: 12 })
     .withMessage('Month must be between 1 and 12'),
   body('year')
-    .isInt({ min: 2020, max: 2030 })
-    .withMessage('Year must be between 2020 and 2030'),
+  .isInt({ 
+    min: 2000, 
+    max: new Date().getFullYear() + 10 
+  })
+  .withMessage(`Year must be between 2000 and ${new Date().getFullYear() + 10}`),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

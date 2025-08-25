@@ -1,5 +1,6 @@
 const Budget = require('../models/Budget');
 const Transaction = require('../models/Transaction');
+const Category = require('../models/Category');
 const { Op } = require('sequelize');
 
 // Update spent amounts for all budgets when a transaction is added/updated
