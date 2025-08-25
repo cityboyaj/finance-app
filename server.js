@@ -8,7 +8,19 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true
+}));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
+});
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -22,7 +34,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/budgets', budgetRoutes);
 
-// Function to create default categories
+// Function to create default categories (same as before)
 async function seedDefaultCategories() {
   const Category = require('./src/models/Category');
   
@@ -52,26 +64,51 @@ async function seedDefaultCategories() {
         defaults: category
       });
     }
-    console.log('Default categories created/verified!');
+    console.log('✅ Default categories created/verified!');
   } catch (error) {
-    console.error('Error creating default categories:', error);
+    console.error('❌ Error creating default categories:', error);
   }
 }
 
-// Test DB connection and start server
-sequelize.authenticate()
+// Enhanced database connection with retries
+async function connectWithRetry() {
+  const maxRetries = 5;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      console.log(`🔄 Attempting database connection (${retries + 1}/${maxRetries})...`);
+      
+      await sequelize.authenticate();
+      console.log('✅ Database connected successfully!');
+      
+      await sequelize.sync({ alter: true });
+      console.log('✅ Database models synced!');
+      
+      await seedDefaultCategories();
+      
+      return true;
+    } catch (error) {
+      console.error(`❌ Database connection attempt ${retries + 1} failed:`, error.message);
+      retries++;
+      
+      if (retries < maxRetries) {
+        console.log(`⏳ Retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+  
+  throw new Error('Failed to connect to database after maximum retries');
+}
+
+// Start server with enhanced error handling
+connectWithRetry()
   .then(() => {
-    console.log('Database connected successfully!');
-    return sequelize.sync({ alter: true });
-  })
-  .then(() => {
-    console.log('Database models synced!');
-    return seedDefaultCategories();
-  })
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log('Available endpoints:');
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log('📊 Available endpoints:');
+      console.log('  GET  /health');
       console.log('  POST /api/register');
       console.log('  POST /api/login');
       console.log('  GET  /api/categories');
@@ -86,5 +123,6 @@ sequelize.authenticate()
     });
   })
   .catch(err => {
-    console.error('Unable to connect to database:', err);
+    console.error('💥 Failed to start server:', err.message);
+    process.exit(1);
   });
