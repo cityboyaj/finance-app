@@ -1,15 +1,8 @@
-const { Sequelize } = require("sequelize");
-const dotenv = require("dotenv");
+const { Sequelize } = require('sequelize');
 
-dotenv.config();
-
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-  logging: false,
+const sequelize = new Sequelize('financeapp', 'finance', 'Ajay2008!', {
+  host: 'localhost',
+  dialect: 'mysql',
 });
-
-sequelize.authenticate()
-  .then(() => console.log("Database connected!"))
-  .catch(err => console.error("Database connection error:", err));
 
 module.exports = sequelize;

@@ -1,19 +1,24 @@
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const dotenv = require("dotenv");
-
-dotenv.config();
-
-const authRoutes = require("./src/routes/auth");
-const transactionRoutes = require("./src/routes/transactions");
+const express = require('express');
+const sequelize = require('./src/config/db');
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+const PORT = 3000;
 
-app.use("/auth", authRoutes);
-app.use("/transactions", transactionRoutes);
+app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Import routes
+const authRoutes = require('./src/routes/auth');
+const transactionRoutes = require('./src/routes/transactions');
+
+// Mount routes
+app.use('/api', authRoutes);
+app.use('/api/transactions', transactionRoutes);
+
+// Test DB connection and start server
+sequelize.authenticate()
+  .then(() => {
+    console.log('MySQL connected!');
+    sequelize.sync({ alter: true }).then(() => console.log('Models synced'));
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch(err => console.error('DB connection error:', err));
