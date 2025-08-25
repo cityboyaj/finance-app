@@ -1,4 +1,4 @@
-const Transaction = require("../models/Transaction");
+const Transaction = require("./models/Transactions");
 
 async function addTransaction(req, res) {
   const { amount, description, date, userId } = req.body;
