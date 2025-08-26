@@ -1,6 +1,35 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+// Add this temporarily to your server.js file right after require('dotenv').config();
+// This will help us see what environment variables Railway has set
+
+console.log('🔍 DEBUGGING ENVIRONMENT VARIABLES:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('DATABASE_URL preview:', process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'NOT SET');
+
+// Check Railway's MySQL variables
+console.log('MYSQL variables:');
+console.log('- MYSQLHOST:', process.env.MYSQLHOST);
+console.log('- MYSQLPORT:', process.env.MYSQLPORT);
+console.log('- MYSQLDATABASE:', process.env.MYSQLDATABASE);
+console.log('- MYSQLUSER:', process.env.MYSQLUSER);
+console.log('- MYSQLPASSWORD exists:', !!process.env.MYSQLPASSWORD);
+
+// List all environment variables that start with 'MYSQL' or 'DATABASE'
+console.log('All DB-related environment variables:');
+Object.keys(process.env).filter(key => 
+  key.includes('MYSQL') || key.includes('DATABASE') || key.includes('DB')
+).forEach(key => {
+  if (key.includes('PASSWORD') || key.includes('SECRET')) {
+    console.log(`${key}: ***`);
+  } else {
+    console.log(`${key}: ${process.env[key]}`);
+  }
+});
+console.log('🔍 END DEBUG INFO\n');
 const sequelize = require('./src/config/db');
 
 const app = express();
